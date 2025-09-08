@@ -1,0 +1,72 @@
+# =============================
+# PowerShell 7 配置文件（修复版）
+# =============================
+
+# 设置 Linux 风格别名（跳过只读内置别名）
+Set-Alias ll Get-ChildItem
+Set-Alias ls Get-ChildItem
+Set-Alias grep Select-String
+Set-Alias cat Get-Content
+
+# 用函数定义带参数的命令
+function touch { New-Item -ItemType File @args }
+function mkdir { New-Item -ItemType Directory @args }
+
+# 启用 PSReadLine（命令行增强）
+if ($host.Name -eq 'ConsoleHost') {
+    Import-Module PSReadLine
+    Set-PSReadLineOption -EditMode Windows
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -PredictionViewStyle ListView
+    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+}
+
+# 自定义提示符
+function prompt {
+    $location = Get-Location
+    Write-Host "PS " -NoNewline -ForegroundColor Gray
+    Write-Host "$location" -NoNewline -ForegroundColor Green
+    Write-Host "> " -NoNewline -ForegroundColor Gray
+    return " "
+}
+
+# 启动欢迎语
+Write-Host ""
+Write-Host "🚀 Welcome to PowerShell 7, $(whoami)!" -ForegroundColor Cyan
+Write-Host "📅 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor DarkGray
+Write-Host ""
+
+# 添加 Git Unix 工具（如果已安装）
+$gitBinPath = "C:\Program Files\Git\usr\bin"
+if (Test-Path $gitBinPath -PathType Container) {
+    $env:Path = "$gitBinPath;$env:Path"
+    Write-Host "✅ Git Unix tools (ls, grep, cat, etc.) available!" -ForegroundColor Green
+}
+
+# 设置 UTF-8 编码
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+[Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+
+# ========== PSReadLine 智能补全设置 ==========
+Set-PSReadLineOption -EditMode Windows
+Set-PSReadLineOption -PredictionSource History
+Set-PSReadLineOption -PredictionViewStyle ListView
+
+# Tab 补全设置
+Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+
+# 模糊匹配补全（输入部分字符也能匹配）
+Set-PSReadLineKeyHandler -Key Ctrl+Spacebar -Function Complete
+
+# ========== Git 补全（如果你已装 posh-git）==========
+Import-Module posh-git -ErrorAction SilentlyContinue
+
+# ========== 文件/目录补全增强 ==========
+Set-PSReadLineOption -CompletionQueryItems 100
+
+
+oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/jandedobbeleer.omp.json | Invoke-Expression
+# ========== Git 参数补全 ==========
+. "$HOME\Documents\PowerShell\Scripts\git-completion.ps1"
