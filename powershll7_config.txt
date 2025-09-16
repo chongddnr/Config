@@ -69,6 +69,6 @@ Set-PSReadLineOption -CompletionQueryItems 100
 
 oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/jandedobbeleer.omp.json | Invoke-Expression
 # ========== Git 参数补全 ==========
-. "$HOME\Documents\PowerShell\Scripts\git-completion.ps1"
+Import-Module posh-git
 
 
